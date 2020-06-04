@@ -75,7 +75,7 @@ exports.KEY = VALUE;
 const PI = 3.14;
 const getCircleArea = (r) => r * r * PI;
 
-module.exports = { PI, getCirclrArea };
+module.exports = { PI, getCircleArea };
 
 // 또는 아래와 같이 내보낼 수도 있음
 module.exports.PI = PI;
@@ -89,7 +89,7 @@ exports.getCircleArea = getCircleArea;
 ```javascript
 const { getCircleArea } = require("./mathUtil");
 
-const result = getCirclrArea(2);
+const result = getCircleArea(2);
 console.log(result); // 12.56
 ```
 
@@ -284,12 +284,12 @@ rl.question("원하는 도형을 작성해 주세요. 정사각형 or 원 ", (fi
 ```
 
 - 기능별로 모듈을 분리했기 때문에 해당 파일의 코드에서 어떤 기능들이 사용되는지를 한눈에 알 수 있음
-- 모듈로 분리했기 때문에 같은 함수를 사용해서 다른 케이스에 사용하는 등 재사용성이 높아짐
+- 모듈로 분리했기 때문에 같은 함수를 다른 케이스에 사용하는 등 재사용성이 높아짐
 - 코드의 양이 줄어 전보다 깔끔해졌고 함수가 기능별로 눈에 들어오기 때문에 가독성이 높아짐
 
 # Webpack
 
-> 오픈 소스 자바스크립트 모듈 번들러, 주로 자바스크립트를 위한 모듈 번들러이지만 호환 플러그인을 포함하는 경우 HTML, CSS, 심지어는 이미지와 같은 프론트엔드 자산들까지 변환 가능
+> 오픈 소스 자바스크립트 모듈 번들러, 주로 자바스크립트를 위한 모듈 번들러이지만 호환 플러그인(로더)을 포함하는 경우 HTML, CSS, 심지어는 이미지와 같은 프론트엔드 자산들까지 변환 가능
 
 ## Bundle 이란?
 
@@ -325,6 +325,7 @@ rl.question("원하는 도형을 작성해 주세요. 정사각형 or 원 ", (fi
 > 모듈의 의존 관계를 해석하기 위한 시작점을 설정
 
 - 모듈 A가 모듈 B, C를 참조하고 있다고 할 때, Entry를 모듈 A로 설정해야 웹팩이 모듈 A를 시작점으로 모듈 B, C와의 의존성을 파악하고 그를 통해 의존성 그래프를 생성한 뒤 번들링을 진행할 수 있음
+- es) src/index.js
 
 #### Output
 
@@ -332,6 +333,7 @@ rl.question("원하는 도형을 작성해 주세요. 정사각형 or 원 ", (fi
 
 - 번들 파일이 생성되는 위치나 이름과 같은 내용들을 설정하게 됨
 - 파일이 생성되는 경로이기 때문에 파일 경로를 절대 경로로 작성해야 함
+- ex) c://users/..../dist/bundle.js
 
 #### 예제
 
@@ -411,6 +413,13 @@ module.exports = {
 - package.json의 dependencies는 실제 애플리케이션을 구동하는 데에 필요한 모듈들에 대한 의존성을 나타내며, devDependencies는 애플리케이션을 개발하는 데에 필요한 모듈들에 대한 의존성을 나타냄
 - npm으로 모듈을 설치할 때 `--save`옵션(default)은 dependencies에 모듈을 추가하고,
   `--save-dev`옵션은 devDependencies에 모듈을 추가
+- mode 값이 production인 경우 소스 코드가 압축된 상태로 번들링됨
+
+```javascript
+module.exports = {
+  mode: "production",
+};
+```
 
 ### Loader
 
@@ -500,7 +509,7 @@ module.exports = {
 
 #### html-webpack-plugin
 
-> 번들러를 위한 html 파일을 자동으로 생성
+> 번들러를 위한 html 파일을 자동으로 생성해주는 외부 플러그인
 
 - 웹팩 설정 파일의 output에 대한 정보들을 참조해서 자동으로 script, link 태그를 추가해 줌
 
@@ -580,7 +589,8 @@ module.exports = {
 </html>
 ```
 
-- HtmlWebpackPlugin 인스턴스에 옵션으로 전달한 데이터는 위와 같이 options 객체의 속성으로 접근 가능
+- HtmlWebpackPlugin 인스턴스에 옵션으로 전달한 데이터는 위와 같이 options 객체의 속성으로 접근 가능,
+  title 뿐만 아니라 options.meta.charset 과 같이 options 객체의 모든 속성에 접근 할 수 있음
 - handlebars는 동적으로 전달받는 데이터를 {{ }} 이중 중괄호 안에 입력
 - meta 태그는 웹팩에서 설정했기 때문에 삭제
 
@@ -604,7 +614,7 @@ module.exports = {
 
 - title 태그의 텍스트로 'Webpack'이 사용됨
 - webpack.config.js 에서 설정한 meta태그가 추가됨
-- script 파일이 자동으로 추가됨
+- script 태그가 자동으로 추가됨
 
 ## caching && webpack
 
@@ -623,16 +633,16 @@ module.exports = {
 
 > 수정 후 번들링한 파일명이 기존의 번들 파일명과 같다면 브라우저는 캐시에 있는 리소스를 사용하게 되며 이 때문에 수정한 내역이 반영되지 않을 수 있는데, 이를 해결하기 위해 해쉬 값을 파일명에 추가해서 번들링할 때마다 새로운 이름을 가진 파일이 생성되도록 함
 
-- 파일이 변경될 때만 해쉬값을 변경
+- 파일이 변경되고 다시 빌드 될때만 해쉬값을 변경
 - 수정사항이 없는 경우에는 브라우저의 캐시를 이용하게 됨
 
 ### hash 값 종류
 
-- hash: 빌드가 될 때마다 부여되는 해쉬값
+- hash: 빌드가 진행될 때마다 새롭게 부여되는 해쉬값
 - contenthash: 컨텐츠의 종류별로 해쉬값을 부여하게 됨
-- chunkhash: 
+- chunkhash: 번들 파일의 크기가 너무 커지면 로드하는 데 걸리는 시간이 늘어나기 때문에 번들 파일을 몇 가지 기준으로 나눈 파일을 chunk 파일이라고 하며, 해당 파일명에 해쉬값을 부여하는 것을 chunkhash 라고 함
 
-#### 사용 방법
+#### hash 사용 방법
 
 > webpack.config.js파일에서 output 속성의 filename 키 값에 []대괄호 사용
 
@@ -675,7 +685,7 @@ module.exports = {
 
 - 플러그인 등록 후 빌드를 해보면 기존에 있던 파일들이 모두 비워지고 빌드한 파일만 남는 것을 확인할 수 있음
 
-### mini-css-extract-plugin
+### contenthash & mini-css-extract-plugin
 
 > css를 html 파일에 태그로 주입하지 않고 별도의 파일로 빌드하도록 도와주는 플러그인
 
@@ -728,4 +738,910 @@ module.exports = {
 - contenthash를 사용하면 css 파일이 수정되었을 때만 빌드 파일에 새로운 해시값을 부여할 수 있게 됨
 
 *※ MiniCssExtractPlugin을 CleanWebpackPlugin 보다 앞에 두어야 정상적으로 결과가 실행됨*
+
+### chunkhash
+
+> 번들 파일을 런타임 청크 파일과 벤더 청크 파일로 분리
+
+- runtime: 번들 파일에 포함된 모듈들을 순서대로 읽을 수 있도록 하는 초기화에 해당하는 코드,
+  모듈에 변화가 발생하더라도 런타임 코드는 변하지 않기 때문에 청크 파일로 분리하면 캐시를 이용할 수 있게 됨
+- vender: jQuery와 같이 외부 패키지에 해당하는 모듈들을 벤더라고 하며,
+  버전 업을 하지 않는 이상 코드가 바뀌지 않기 때문에 청크 파일로 분리하면 캐시를 이용할 수 있게 됨
+
+*※ runtime: 더 넓은 의미에서 런타임은 애플리케이션이 메모리를 할당받고 실행되는 환경을 뜻함*
+
+#### runtime chunk 분리하기
+
+```javascript
+// ...
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "[name].[chunkhash].js",
+    path: path.resolve(__dirname, "dist"),
+  },
+  // ...
+  optimization: {
+    runtimeChunk: {
+      name: "runtime",
+    },
+    // ...
+};
+```
+
+- [name] : entry 파일 이름이나 웹팩 설정 파일 내에서 name 프로퍼티에 할당한 값이 적용됨
+- [chunkhash] : chunk 파일의 해쉬 값을 지정
+- optimization: 웹팩 번들 파일의 최적화를 담당하는 키,
+  청크 파일을 분리하는 것 역시 최적화에 해당되기 때문에 optimization 키에서 관리
+- runtimeChunk: 런타임 청크 파일에 대한 설정 키
+- name: 런타임 청크 파일의 이름을 지정
+- 프로젝트를 빌드해 보면 runtime.63236236...js 와 같은 런타임 청크 파일이 생성된 것을 볼 수 있음
+
+#### vender chunk 분리하기
+
+##### index.js
+
+> jQeury를 분리하기 위해 패키지 설치 후 index.js 파일의 코드를 아래와 같이 수정
+
+```javascript
+import "normalize.css";
+import styles from "./index.css";
+import $ from "jquery";
+
+const component = () => {
+  const element = document.createElement("div");
+  element.innerHTML = "Holy Moly!!!!";
+
+  element.classList = styles.helloWebpack;
+
+  return element;
+};
+window.onload = () => {
+  document.body.appendChild(component());
+  console.log($(`.${styles.helloWebpack}`).length);
+};
+
+```
+
+- jQuery를 사용해서 styles.helloWebpack 클래스명을 사용하는 DOM 객체 수를 콘솔에 출력하는 코드를 추가
+
+##### webpack.config.js
+
+>vender 청크 파일을 분리하기 위해 웹팩 설정 파일을 아래와 같이 수정
+
+```javascript
+// ...
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "[name].[chunkhash].js",
+    path: path.resolve(__dirname, "dist"),
+  },
+  // ...
+  optimization: {
+    // ...
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "venders",
+          chunks: "all",
+        },
+      },
+    },
+  },
+  // ...
+};
+```
+
+- splitChunks: 청크 파일에 대한 설정을 하는 최상위 키,
+- cacheGroups: test, priority, reuseExistingChunk 속성을 제외한 splitChunks의 모든 속성을 상속하거나 오버라이딩할 수 있으며, 여러 캐시 그룹에서 공통으로 사용할 속성에 대한 설정
+- test: node_modules 내부에 해당되는 모듈들을 벤더 청크 파일로 분리하기 위해 설정
+- name: 청크 파일의 이름을 venders로 지정
+- chunks: 최적화를 위해 어떤 청크 파일이 선택될 지를 결정하는 속성이며, 'all' 키워드를 입력하면 청크 파일이 동기 청크 파일과 비동기 청크 파일 사이에서도 공유될 수 있도록 함
+
+## Minification & Mangling
+
+> 소스 코드 및 리소스 최적화와 관련된 개념
+
+### Minification
+
+> 최소화라는 말 그대로 소스 코드의 형태를 압축시키는 것
+
+- 애플리케이션 동작 과정에 관여하지 않는 요소 제거
+  ex) 주석, console.log, etc.
+- 들여쓰기, 띄어쓰기 등을 최소화하고 분기문을 삼항연산자와 같은 짧은 코드로 변환시키는 과정 등이 포함됨
+
+### Mangling
+
+> Uglify 라고도 하며 표현의 난독화 과정
+
+- 변수, 함수 등의 이름을 짧은 알파벳 한두 글자로 치환
+- 외부에서의 코드 분석을 어렵게 함
+
+### html-webpack-plugin 최적화
+
+> webpack.config.js에서 HtmlWebpackPlugin 인스턴스 인수의 속성으로 minify 입력
+
+```javascript
+// ...
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+module.exports = {
+  // ...
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: "Webpack",
+      template: "./template.hbs",
+      meta: {
+        charset: "UTF-8",
+        viewport: "width=device-width, initial-scale=1.0",
+      },
+      minify: {
+        collapseWhitespace: true,
+        useShortDoctype: true,
+        removeScriptTypeAttributes: true,
+      },
+    }),
+    // ...
+  ],
+ // ...
+};
+```
+
+- minify의 값으로는 논리값이나 객체가 들어갈 수 있으며, true인 경우에는 mode의 값이 production일 때와 동일한 옵션이 적용되고, 객체인 경우에는 직접 옵션을 설정할 수 있음
+- collapseWhitespace: 공백을 제거하는 속성
+- useShortDoctype: Doctype을 줄여주는 속성
+- removeScriptTypeAttributes: script 태그의 type 속성을 제거해 주는 속성
+
+### optimize-css-assets-webpack-plugin을 이용한 css 최적화
+
+> optimize-css-assets-webpack-plugin은 css 컴프레서가 웹팩 구동 시 작동하도록 해주는 플러그인
+
+#### 설치
+
+```bash
+$ npm i optimize-css-assets-webpack-plugin cssnano -D
+```
+
+- cssnano: css의 컴프레서로 사용할 CSS-NANO 역시 설치해야 함
+
+#### webpack.config.js에 등록
+
+```javascript
+// ...
+const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+
+module.exports = {
+   // ...
+   plugins: [
+    // ...
+    new OptimizeCssAssetsPlugin({
+      assetNameRegExp: /\.css$/g,
+      cssProcessor: require("cssnano"),
+      cssProcessorPluginOptions: {
+        preset: ["default", { discardComments: { removeAll: true } }],
+      },
+      canPrint: true,
+    }),
+  // ...
+  ],
+  // ...
+};
+```
+
+- optimize-css-assets-webpack-plugin에서 생성자 함수를 가져온 뒤 인스턴스를 plugins에 등록
+- assetNameRegExp: 정규표현식을 사용해서 어떤 파일들에 대해 압축을 진행할 것인지 설정
+- cssProcessor: css 처리기를 등록하는 속성으로 여기서는 CSS-NANO를 등록
+- cssProcessorPluginOptions: 플러그인 옵션은 cssProcessor로 전달되며 기본값은 {}빈 객체
+- canPrint: 플러그인이 콘솔에 메세지를 출력할 수 있는지를 나타내는 속성으로 기본값은 true
+- 번들링 후 결과를 확인해 보면 html, js 파일처럼 css 파일도 압축되어 있는 것을 볼 수 있음
+
+### terser를 이용한 JavaScript 최적화
+
+> 자바스크립트 역시 압축에 컴프레서가 필요하며 대표적인 컴프레서들로는 ulifyjs, babel-minify, terser가 있으며,
+> 웹팩은 기본적으로 terser를 이용함
+
+#### 설치
+
+```bash
+$ npm i terser-webpack-plugin -D
+```
+
+- terser는 웹팩을 설치할 때  함께 설치되기 때문에 terser를 따로 설치할 필요는 없음
+- 플러그인 자체는 외부 모듈이기 때문에 설치가 필요함
+
+#### webpack.config.js에 등록
+
+```javascript
+// ...
+const TerserWebpackPlugin = require("terser-webpack-plugin");
+
+module.exports = {
+  // ...
+  optimization: {
+    // ...
+    minimize: true,
+    minimizer: [
+      new TerserWebpackPlugin({
+        cache: true,
+      }),
+    ],
+  },
+  mode: "none",
+};
+```
+
+- terser-webpack-plugin은 plugins 키에 등록하지 않고 optimization 내부 키인 minimizer에 등록
+- 웹팩이 terser를 기본적으로 사용하는데 굳이 등록을 하는 이유는 옵션을 커스터마이징하기 위함
+- minimize: 이 옵션을 true로 설정하면 terser의 기본적인 기능을 수행함
+- minimizer: 자바스크립트 컴프레서 플러그인을 등록할 수 있으며 생성자 함수의 인수에 옵션 입력 가능
+- cache: 변동이 없는 파일들에 대해서는 캐시를 이용하도록 해서 빌드 시간을 단축시켜주는 속성
+
+## Webpack-Merge를 활용한 Mode 분리
+
+> Development mode vs Production mode
+> 코드 압축 및 난독화에 대한 설정이 늘어다가 보면 빌드 시간이 길어져서 개발 효율이 떨어질 수 있기 때문에,
+> 개발 환경과 프로덕션 환경을 구분해서 환경에 맞는 스크립트를 사용할 수 있게 하는 것이 필요
+
+### 설치 
+
+```bash
+$ npm i webpack-merge -D
+```
+
+### 공통 설정 분리
+
+> 개발 모드와 프로덕션 모드에서 공통으로 사용되는 코드를 webpack.common.js 파일로 분리
+
+```javascript
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+
+module.exports = {
+  entry: "./index.js",
+  output: {
+    filename: "[name].[chunkhash].js",
+    path: path.resolve(__dirname, "dist"),
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: [
+          //   {
+          //     loader: "style-loader",
+          //     options: {
+          //       injectType: "singletonStyleTag",
+          //     },
+          //   },
+          { loader: MiniCssExtractPlugin.loader },
+          {
+            loader: "css-loader",
+            options: {
+              modules: true,
+            },
+          },
+        ],
+      },
+      {
+        test: /\.hbs$/i,
+        use: ["handlebars-loader"],
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: "Webpack",
+      template: "./template.hbs",
+      meta: {
+        charset: "UTF-8",
+        viewport: "width=device-width, initial-scale=1.0",
+      },
+      minify: {
+        collapseWhitespace: true,
+        useShortDoctype: true,
+      },
+    }),
+    new MiniCssExtractPlugin({
+      filename: "[contenthash].css",
+    }),
+
+    new CleanWebpackPlugin(),
+  ],
+};
+```
+
+- optimization, optimize-css-assets-webpack-plugin 과 같이 프로덕션 모드에서만 사용되는 코드를 제거
+- mode 역시 각각의 모드에서 설정할 것이기 때문에 제거
+
+### 개발 환경 설정하기
+
+> webpack.dev.js 파일에 개발 모드에서 사용할 코드를 webpack-merge를 이용해서 작성
+
+```javascript
+const merge = require("webpack-merge");
+const common = require("./webpack.common"); // 공통 설정 가져오기
+
+const config = {
+  mode: "development",
+};
+
+module.exports = merge(common, config); // 공통 설정과 개발 설정 통합
+```
+
+- 개발 모드는 생산성을 향상시키는 여러가지 옵션들로 구성되어 있음
+- 개발 모드는 설정만 해 두고 프로덕션 모드의 설정을 마친 뒤에 추가로 코딩을 진행할 예정
+
+### 프로덕션 환경 설정하기
+
+> 위에서 했던 것과 동일한 방식으로 webpack.prod.js 파일에 프로덕션 모드에서 사용할 코드 작성
+
+```javascript
+const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const TerserWebpackPlugin = require("terser-webpack-plugin");
+const merge = require("webpack-merge");
+const common = require("./webpack.common");
+
+const config = {
+  plugins: [
+    new OptimizeCssAssetsPlugin({
+      assetNameRegExp: /\.css$/g,
+      cssProcessor: require("cssnano"),
+      cssProcessorPluginOptions: {
+        preset: ["default", { discardComments: { removeAll: true } }],
+      },
+      canPrint: true,
+    }),
+  ],
+  optimization: {
+    runtimeChunk: {
+      name: "runtime",
+    },
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "venders",
+          chunks: "all",
+        },
+      },
+    },
+    minimize: true,
+    minimizer: [
+      new TerserWebpackPlugin({
+        cache: true,
+      }),
+    ],
+  },
+  mode: "production",
+};
+
+module.exports = merge(common, config);
+```
+
+- 기존의 webpack.config.js 파일에서 webpack.common.js 와 중복되는 코드를 제거
+- 마찬가지로 webpack-merge 를 이용해서 공통 설정과 프로덕션 설정을 병합
+
+### 스크립트 수정하기
+
+> 각 환경에서 웹팩의 동작을 다르게 하기 위해서 package.json의 scripts 수정
+
+```javascript
+{
+  // ...
+  "scripts": {
+    "dev": "webpack --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js"
+  },
+  // ...
+}
+```
+
+- webpack 명령어에 --config 옵션을 추가하면 웹팩이 실행될 때 사용할 설정 파일 지정 가능
+- 각각의 명령어를 실행해 보면 빌드 결과가 다르게 나타나는 것을 확인할 수 있음
+- 개발 환경에서의 빌드는 2.90초가 소요된 반면 프로덕션 환경에서는 6.67초가 소요됨
+
+### define 플러그인 사용하기
+
+> define:웹팩이 빌드를 진행할 때 특정한 상속값을 만들어서 프로젝트 어디서든 상속값을 사용할 수 있게 해주는 플러그인이며, 웹팩 내장 플러그인이기 때문에 별도의 설치는 필요 없음
+
+#### webpack.common.js에 등록
+
+```javascript
+const webpack = require("webpack");
+
+const isProduction = process.env.isProduction === "PRODUCTION";
+
+module.exports = {
+   // ...
+   plugins: [
+    // ...
+    new HtmlWebpackPlugin({
+      title: "Webpack",
+      template: "./template.hbs",
+      meta: {
+        charset: "UTF-8",
+        viewport: "width=device-width, initial-scale=1.0",
+      },
+      minify: isProduction
+        ? {
+            collapseWhitespace: true,
+            useShortDoctype: true,
+          }
+        : false,
+    }),
+    new webpack.DefinePlugin({
+      IS_PRODUCTION: isProduction,
+    }),
+  ],
+};
+```
+
+- IS_PRODUCTION 이라는 전역 변수에 isProduction 값 할당
+- isProduction은 node 환경의 process.env 객체의 isProduction 속성값을 "PRODUCTION"과 비교해서 논리값을 저장하는 변수
+- isProduction 변수와 삼항 연산자를 이용해서 참일 때는 HtmlWebpackPlugin의 최적화 속성인 minify의 값으로 설정 객체를 할당하고, 거짓일 때는 최적화를 하지 않도록 false 값 할당
+
+#### process.env.isProduction 속성 추가
+
+> package.json 파일의 scripts를 수정해서 명령어에 따라 process.env.isProduction 값이 빌드 모드와 같게 설정
+
+```json
+{
+  // ...
+  "scripts": {
+    "dev": "env isProduction=DEVELOPMENT webpack --config webpack.dev.js",
+    "build": "env isProduction=PRODUCTION webpack --config webpack.prod.js"
+  },
+  // ...
+}
+```
+
+- env 키워드를 사용하면 process.env 객체에 속성과 값을 등록 가능
+
+#### index.js 에서 출력하기
+
+```javascript
+// ...
+window.onload = () => {
+  // ...
+  console.log(`IS PRODUCTION: ${IS_PRODUCTION}`);
+};
+```
+
+- define 모듈 덕분에 어디서든 IS_PRODUCTION 변수에 접근할 수 있게 되었기 때문에 index.js 파일에서 해당 변수를 사용해서 프로덕션 모드인지 아닌지를 콘솔창에 출력
+- 각각의 스크립트를 실행해보면 개발 모드일 때는 false, 프로덕션 모드일 때는 true가 브라우저의 콘솔창에 출력되는 것을 볼 수 있음
+
+### webpack-dev-server 사용하기
+
+> webpack에서 로컬 서버의 지원을 위해 제공하는 모듈로 개발 환경에서 유용하게 사용
+
+#### 특징
+
+- 빌드 결과물을 사용하는 것이 아니라 메모리상에서 실행되기 때문에 dist 폴더와 상관없이 실행됨
+- 메모리상에 실행되기 때문에 직접 파일을 빌드해서 실행하는 것보다 빠름
+- 수정 역시 메모리상에서 비교한 뒤에 바로 반영되기 때문에 편리하게 사용할 수 있음
+- 로컬 서버 포트의 기본값은 8080
+- http 프로토콜로 실행되기 때문에 실제 웹 서비스의 실행 환경을 고려할 수 있게 됨
+- 파일의 변화를 감지해서 바로 빌드를 진행하는 watch 옵션이 적용되어 있으며 live-reloading 환경을 제공
+
+#### 설치
+
+```bash
+$ npm i webpack-dev-server -D
+```
+
+#### CLI로 실행해 보기
+
+> node_modules의 .bin 폴더에 접근해서 직접 실행 가능
+
+```bash
+$ ./node_modules/.bin/webpack-dev-server --config webpack.dev.js
+```
+
+- 직접 실행할 때는 웹팩 설정 파일을 지정해 주어야 함
+
+#### 스크립트에 등록하기
+
+> 매번 경로까지 포함해서 명령어를 입력할 수는 없기 때문에 package.json의 scripts에 실행 명령어 등록
+
+```json
+{
+  // ...
+  "scripts": {
+    "start": "env isProduction=DEVELOPMENT webpack-dev-server --config webpack.dev.js",
+	// ...
+  },
+  // ...
+}
+```
+
+- `yarn start` 또는 `npm run start` 명령어를 실행하면 8080포트로 로컬 서버가 구동됨
+
+#### 옵션 - historyApiFallback
+
+```javascript
+const merge = require("webpack-merge");
+const common = require("./webpack.common");
+
+const config = {
+  mode: "development",
+  devServer: {
+    historyApiFallback: {
+      rewrites: [
+        {
+          from: /^\/subpage$/,
+          to: "subpage.html",
+        },
+        {
+          from: /./, // '.': 특정 경로를 제외한 모든 경로를 의미
+          to: "404.html",
+        },
+      ],
+    },
+  },
+};
+
+module.exports = merge(common, config);
+```
+
+- webpack-dev-server와 관련된 설정은 devServer 키 내부에 정의
+- historyApiFallback: 특정 url에 대해 어떤 페이지로 이동시킬 것인지에 대해 정의할 수 있는 속성이며, true 값을 입력하면 라우팅 처리가 되지 않은 경로로 접근했을 때 index.html 파일을 전송
+- rewrites: 각각의 url에 대해 from, to 키워드를 사용해서 특정 경로에 대해 전송할 파일을 지정할 수 있음
+- from의 값은 정규 표현식으로 작성하며, to에는 해당 경로에 전송할 파일 이름 입력
+- webpack의 설정 파일을 수정하면 서버를 내렸다가 다시 구동시켜야 변경 사항이 반영됨
+
+*※ to 속성 값으로 지정한 파일을 만들어 두어야 제대로 실행됨*
+
+#### 옵션 - open
+
+```javascript
+const merge = require("webpack-merge");
+const common = require("./webpack.common");
+
+const config = {
+  mode: "development",
+  devServer: {
+    open: true,
+    // ...
+  },
+};
+
+module.exports = merge(common, config);
+```
+
+- open 속성의 값을 true로 지정하면 webpack-dev-server 구동 시 기본 브라우저로 설정해 둔 브라우저의 새 탭이 열리게 됨
+- 웹팩 서버를 내렸다가 다시 `yarn start` 명령어를 실행해 보면 브라우저가 열리는 것을 확인할 수 있음
+
+#### 옵션 - overlay
+
+```javascript
+const merge = require("webpack-merge");
+const common = require("./webpack.common");
+
+const config = {
+  mode: "development",
+  devServer: {
+    open: true,
+    overlay: true,
+    // ...
+  },
+};
+
+module.exports = merge(common, config);
+```
+
+- overlay 속성을 true로 설정하면 에러 발생 시 에러 정보가 콘솔 창에 뜨는 것이 아니라 브라우저에 나타나게 됨
+- CRA(create-react-app)에도 같은 설정이 적용되어 있기 때문에 CRA 환경에서 오류가 발생하면 브라우저에 에러 내용이 출력되는 것
+
+#### 옵션 - port
+
+```javascript
+const merge = require("webpack-merge");
+const common = require("./webpack.common");
+
+const config = {
+  mode: "development",
+  devServer: {
+    // ...
+    port: 3000,
+  },
+};
+
+module.exports = merge(common, config);
+```
+
+- port 속성의 값으로는 웹팩 개발 서버가 구동되는 포트를 임의로 지정할 수 있음
+- 서버를 재시작해보면 3000번 포트로 로컬 서버가 구동되는 것을 확인할 수 있음
+- 포트 번호는 다른 프로그램과 겹치지 않도록 설정하는 것이 권장됨
+
+## Fileloader
+
+> FileLoader: 모듈 내에서 import, require 키워드를 통해 사용하고자 하는 파일들을 모듈로 읽어들이는 로더,
+> 빌드 시 output 폴더로 해당 모듈(파일)을 복사하는 역할을 함
+
+### 설치
+
+```bash
+$ npm i file-loader -D
+```
+
+### webpack.common.js에 등록
+
+> file-loader는 dev, prod 환경에서 모두 사용하므로 webpack.common.js 파일에 등록
+
+```javascript
+// ...
+module.exports = {
+  // ...
+  module: {
+    rules: [
+      // ...
+      {
+        test: /\.(jpe?g|png|gif)$/i,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "[contenthash].[ext]",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  // ...
+};
+```
+
+- test: 정규 표현식을 통해 처리할 이미지 파일의 확장자 지정
+- name: 이미지 파일의 이름에 해시값을 지정하고 확장자를 원래 파일에서 받아서 사용하기 위해 ext 키워드 입력
+
+### 이미지 파일 사용하기
+
+> index.js 에서 이미지 파일 사용
+
+```javascript
+// ...
+import slackImg from "./images/slack.jpg";
+
+const component = () => {
+  const element = document.createElement("div");
+  element.innerHTML = "Holy Moly!!";
+
+  const imgElement = document.createElement("img");
+  imgElement.src = slackImg;
+  console.log(slackImg);
+
+  element.classList = styles.helloWebpack;
+  element.appendChild(imgElement);
+
+  return element;
+};
+// ...
+```
+
+- img 태그를 생성해서 src 속성의 값으로 이미지 모듈 사용
+- 프로젝트를 실행해 보면 콘솔을 확인해 보면 해쉬값이 적용된 파일명이 출력되는 것을 볼 수 있음
+- 빌드를 해보면 dist 폴더에 다른 파일들과 같이 이미지 파일도 들어가 있음
+
+### 이미지 파일 관리하기
+
+> 다른 파일과 마찬가지로 이미지 파일도 하나의 폴더에 관리하는 것이 좋으므로 프로젝트 구조를 수정하고 webpack.common.js의 entry 속성을 수정
+
+```javascript
+/*
+폴더 구조
+|-- 404.html
+|-- dist
+|-- package-lock.json
+|-- package.json
+|-- src
+|   |-- images
+|   |   |-- sample.svg
+|   |   |-- slack.jpg
+|   |   `-- slack.png
+|   |-- index.css
+|   `-- index.js
+|-- subpage.html
+|-- template.hbs
+|-- webpack.common.js
+|-- webpack.config.js
+|-- webpack.dev.js
+`-- webpack.prod.js
+*/
+
+// ...
+module.exports = {
+  entry: "./src/index.js",
+  // ...
+};
+```
+
+- index.js 파일을 src 폴더로 옮겼기 때문에 entry 속성의 값을 그에 맞게 수정
+
+#### 빌드된 이미지 파일 관리하기
+
+> 빌드된 이미지 파일 역시 dist 폴더 안에 assets 폴더에서 관리하기 위해 webpack.common.js 파일을 아래와 같이 수정
+
+```javascript
+// ...
+module.exports = {
+  entry: "./src/index.js",
+  output: {
+    filename: "[name].[chunkhash].js",
+    path: path.resolve(__dirname, "dist"),
+  },
+  module: {
+    rules: [
+      // ...
+      {
+        test: /\.(jpe?g|png|gif)$/i,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "[contenthash].[ext]",
+              publicPath: "assets/",
+              outputPath: "assets/",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  // ...
+};
+```
+
+- publicPath: 여러 모듈이나 output 속성에서 광범위하게 사용되는 속성이며, 해당 모듈의 url 경로 앞에 publicPath 속성의 값이 추가됨
+- outputPath: 빌드가 되고 나서 file-loader에 의해 처리된 파일들이 저장될 경로를 지정하는 속성이며,
+  output 속성의 path 값을 기준으로 정해짐
+- 웹팩 개발 서버 실행 후 개발자 도구로 검사를 해보면 이미지 파일의 경로에 'assets/'가 추가된 것을 알 수 있음
+- 또한 빌드를 해보면 이미지 파일이 dist/assets 폴더에 저장되는 것을 확인할 수 있음
+
+### filename 분기 처리
+
+> 개발 모드에서는 원래 파일명이 적용되고, 프로덕션 모드에서는 해쉬값이 추가된 파일명이 사용되도록 처리
+> webpack.common.js 파일을 아래와 같이 수정
+
+```javascript
+// ...
+const isProduction = process.env.isProduction === "PRODUCTION";
+
+module.exports = {
+  // ...
+  module: {
+    rules: [
+      // ...
+      {
+        test: /\.(jpe?g|png|gif)$/i,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name() {
+                if (!isProduction) {
+                  return "[path][name].[ext]";
+                }
+                return "[contenthash].[ext]";
+              },
+              publicPath: "assets/",
+              outputPath: "assets/",
+            },
+          },
+        ],
+      },
+    ],
+  },
+  // ...
+};
+```
+
+- options 객체에 name을 메서드로 등록
+- 앞서 정의했던 isProduction 변수를 이용해서 개발 모드일 때는 파일명이,
+  프로덕션 모드 일 때는 해시값이 적용되도록 메서드를 작성
+- 메서드를 사용하지 않고 삼항연산자를 사용해도 결과는 동일함
+- 웹팩 개발 서버를 재시작해서 img 태그의 src 속성을 보면 파일 이름이 저장되어 있고,
+  빌드를 한 뒤에 index.html을 보면 src 속성값이 해쉬로 되어 있는 것을 알 수 있음
+
+## UrlLoader
+
+> 작은 이미지와 같은 리소스들을 Data URIs라는 특정한 형태의문자열로 변환해 주는 역할을 함,
+> 인라인 형태로 적용되는 리소스라고 표현되기도 함
+
+### 특징
+
+- 이미지 파일이 문자열로 변환돼 문서 내에 삽입되기 때문에 리소스 요청 수를 줄일 수 있음
+- http 프로콜을 통한 리소스 요청을 줄임으로써 다른 파일들을 보다 빨리 전송할 수 있게 됨
+- 하지만 Data URIs의 용량이 너무 커지는 경우에는 문서의 불러오는 속도에 영향을 줄 수 있기 때문에
+  용량을 적절히 조절하는 것이 요구됨
+
+### Data URIs
+
+> 데이터 URI 체계는 외부 자원 인 것처럼 웹 페이지에 데이터를 인라인으로 포함시키는 방법을 제공하는 균일한 자원 식별자 체계이며 4가지 요소로 구성됨
+
+```html
+data:mediatype;base64,data
+```
+
+- data: 가장 앞에 있는 data로, Data URIs가 시작됨을 알리는 요소
+- mediatype: 읽어들인 미디어 모듈의 타입 정보가 기록되는 요소
+  ex) JPEG 이미지 파일의 경우 'image/jpeg'
+- base64: 바이너리 값(이미지)을 텍스트 형태로 인코딩할 때 사용되는 요소
+- data: base64를 통해서 인코딩된 결괏값이 전달되는 요소
+
+### 설치
+
+```bash
+$ npm i url-loader -D
+```
+
+### webpack 설정 파일에 등록
+
+> 개발 모드와 프로덕션 모드에서 모두 사용되므로 webpack.common.js 파일에 url-loader 등록
+
+```javascript
+// ...
+module.exports = {
+  // ...
+  module: {
+    rules: [
+      // ...
+      {
+        test: /\.svg$/i,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 8192, // 8KB 정도
+            },
+          },
+        ],
+      },
+    ],
+  },
+  // ...
+};
+```
+
+- test: svg 파일에 대해서만 url-loader 를 적용하도록 설정
+- limit: 바이트 단위의 숫자가 들어가며, 최대 파일 크기에 대한 제한을 설정
+- 브라우저마다 Data URIs의 문자열 크기를 제한하는 곳도 있기 때문에 적당한 정도로 limit 속성의 값을 설정하는 것이 중요
+- limit 값을 초과하는 파일의 경우 자동으로 file-loader가 처리하도록 설정되어 있으며,
+  options의 fallback 속성에서 limit을 초과한 파일을 어떤 로더로 다룰 것인지를 지정할 수 있음
+
+### svg 파일 사용하기
+
+> index.js 파일에서 기존의 jpg 파일을 svg 파일로 교체
+
+```javascript
+// ...
+import svgImg from "./images/sample.svg";
+
+const component = () => {
+  const element = document.createElement("div");
+  element.innerHTML = "Holy Moly!!";
+
+  const imgElement = document.createElement("img");
+  imgElement.src = svgImg;
+  console.log(svgImg); // data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiB.....
+
+  element.classList = styles.helloWebpack;
+  element.appendChild(imgElement);
+
+  return element;
+};
+// ...
+```
+
+- svg 파일을 콘솔에 출력해 보면 Data URIs의 형식으로 로그가 찍히는 것을 확인할 수 있음
+- 브라우저의 network 탭을 확인해 보면 다른 파일들은 모두 http 프로토콜로 시작되는데,
+  변환된 svg 파일만 다른 형태로 전송되는 것을 볼 수 있음
+
+
+
+
 

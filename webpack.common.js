@@ -2,11 +2,12 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
-const TerserWebpackPlugin = require("terser-webpack-plugin");
+const webpack = require("webpack");
+
+const isProduction = process.env.isProduction === "PRODUCTION";
 
 module.exports = {
-  entry: "./index.js",
+  entry: "./src/index.js",
   output: {
     filename: "[name].[chunkhash].js",
     path: path.resolve(__dirname, "dist"),
@@ -35,6 +36,30 @@ module.exports = {
         test: /\.hbs$/i,
         use: ["handlebars-loader"],
       },
+      {
+        test: /\.(jpe?g|png|gif)$/i,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: isProduction ? "[contenthash].[ext]" : "[path][name].[ext]",
+              publicPath: "assets/",
+              outputPath: "assets/",
+            },
+          },
+        ],
+      },
+      {
+        test: /\.svg$/i,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 8192,
+            },
+          },
+        ],
+      },
     ],
   },
   plugins: [
@@ -45,44 +70,19 @@ module.exports = {
         charset: "UTF-8",
         viewport: "width=device-width, initial-scale=1.0",
       },
-      minify: {
-        collapseWhitespace: true,
-        useShortDoctype: true,
-      },
+      minify: isProduction
+        ? {
+            collapseWhitespace: true,
+            useShortDoctype: true,
+          }
+        : false,
     }),
     new MiniCssExtractPlugin({
       filename: "[contenthash].css",
     }),
-    new OptimizeCssAssetsPlugin({
-      assetNameRegExp: /\.css$/g,
-      cssProcessor: require("cssnano"),
-      cssProcessorPluginOptions: {
-        preset: ["default", { discardComments: { removeAll: true } }],
-      },
-      canPrint: true,
-    }),
     new CleanWebpackPlugin(),
+    new webpack.DefinePlugin({
+      IS_PRODUCTION: isProduction,
+    }),
   ],
-  target: "web",
-  optimization: {
-    runtimeChunk: {
-      name: "runtime",
-    },
-    splitChunks: {
-      cacheGroups: {
-        commons: {
-          test: /[\\/]node_modules[\\/]/,
-          name: "venders",
-          chunks: "all",
-        },
-      },
-    },
-    minimize: true,
-    minimizer: [
-      new TerserWebpackPlugin({
-        cache: true,
-      }),
-    ],
-  },
-  mode: "none",
 };
