@@ -781,7 +781,7 @@ module.exports = {
 
 ##### index.js
 
-> jQeury를 분리하기 위해 패키지 설치 후 index.js 파일의 코드를 아래와 같이 수정
+> jQeury를 분리하기 위해  jquery패키지 설치 후 index.js 파일의 코드를 아래와 같이 수정
 
 ```javascript
 import "normalize.css";
@@ -796,11 +796,11 @@ const component = () => {
 
   return element;
 };
+
 window.onload = () => {
   document.body.appendChild(component());
   console.log($(`.${styles.helloWebpack}`).length);
 };
-
 ```
 
 - jQuery를 사용해서 styles.helloWebpack 클래스명을 사용하는 DOM 객체 수를 콘솔에 출력하는 코드를 추가
@@ -1641,7 +1641,460 @@ const component = () => {
 - 브라우저의 network 탭을 확인해 보면 다른 파일들은 모두 http 프로토콜로 시작되는데,
   변환된 svg 파일만 다른 형태로 전송되는 것을 볼 수 있음
 
+## Sass-loader
+
+> sass: css의 확장된 형태로, sass 파일을 작성하는 경우 브라우저가 읽을 수 있도록 css파일로 변환해야 함
+
+- 웹팩이 sass 파일을 모듈로 다룰 수 있도록 sass-loader가 필요
+- node-sass: Node.js 환경에서 sass 파일을 읽을 수 있도록 하는 데에 필요
+
+### 설치
+
+```bash
+$ npm i -D sass-loader node-sass
+```
+
+### Loader-Chaining
+
+1. 개발 과정에서는 sass 파일로 작업
+2. sass-loader: sass 모듈을 css 파일로 컴파일하는 작업을 수행
+3. css-loader: 컴파일된 css 파일을 빌드 결과물에 합지는 작업을 수행
+4. 로더를 등록하는 use키에 배열 인덱스가 큰 순서(나중에에 등록한 순서)부터 로더가 실행됨
+
+### 웹팩 설정파일에 등록하기
+
+> 개발 모드와 프로덕션 모드에서 모두 sass 파일을 사용하기 때문에 webpack.common.js에 등록
+
+```javascript
+// ...
+module.exports = {
+  // ...
+  module: {
+    rules: [
+      {
+        test: /\.s?css$/i,
+        oneOf: [
+          {
+            test: /\.module\.s?css$/,
+            use: [
+              { loader: MiniCssExtractPlugin.loader },
+              {
+                loader: "css-loader",
+                options: {
+                  modules: true,
+                },
+              },
+              "sass-loader",
+            ],
+          },
+          {
+            use: [ MiniCssExtractPlugin.loader, "css-loader", "sass-loader" ],
+          },
+        ],
+      },
+      // ...
+    ],
+  },
+  // ...
+};
+```
+
+- oneOf: 여러 규칙 중에 하나의 규칙이 적용되도록 할 수 있는 키
+- oneOf 내부에 test가 지정되지 않은 경우는 첫 번째 테스트에 해당하지 않는 모든 경우를 처리함을 뜻함
+- filename.module.scss 파일과 filename.scss 파일을 각각 다르게 처리, module.css 파일은 모듈로 처리를 수행하고  전역 css 파일은 그대로 전역 스타일로 처리되도록 설정
+- 두 경우 모두 sass-loader, css-loader, MiniCssExtractPlugin.loader 순서로 로더 체이닝이 진행됨
+
+### sass 사용하기
+
+> index.css 파일을 index.module.scss 파일로 이름을 변경하고 sass 문법을 사용하도록 수정
+
+```scss
+$font-color: green;
+
+div {
+  background-color: powderblue;
+}
+
+.helloWebpack {
+  color: $font-color;
+}
+```
+
+- $를 사용한 sass 문법을 사용하고 프로젝트를 개발 모드로 시작해 보면 결과가 정상적으로 출력됨을 알 수 있음
+- index.js 에서 scss 파일의 경로를 수정해야 에러가 발생하지 않음
+- sass로 스타일을 관리하는 경우 참고할 수 있는 *7-1 sass*라는 sass 관리 아키텍쳐가 있음
+- .sass 파일과 .scss 파일의 차이는 세미콜론과 중괄호를 사용하느냐의 차이가 있음
+
+### PostCSS
+
+> postcss: javascript플러그인을 추가해서 css를 목적에 맞게 변환하는 역할을 함
+
+### 주요 플러그인
+
+- auto prefixer: 브라우저 호환성을 위해 사용되는 벤더 프리픽스를 자동으로 추가해 줌
+- cssdb: 모던 css를 타겟 브라우저에 맞는 css 문법으로 변환
+- css modules: POSTCSS를 통해서도 css를 모듈로 관리할 수 있도록 함
+- stylelint: css 코드의 문법을 체크해서 에러로 알려주는 기능
+- lostgrid: calc 함수를 통해 grid를 안전하게 사용할 수 있도록 함
+
+### Auto Prefixer
+
+> 브라우저 호환성을 위해 사용되는 벤더 프리픽스를 자동으로 추가해 주는 플러그인
+
+#### 벤더 프리픽스란?
+
+- 브라우저 버전별로 표준화되지 않은 css를 제공하기 위해 만든 접두사
+- 벤더는 공급자라는 뜻으로 접두사를 만든 브라우저를 뜻함
+- prefix free와 같은 CDN으로 벤더 프리픽스를 자동으로 추가하기도 함
+
+| Vendor Prefix | Browser                                                 |
+| ------------- | ------------------------------------------------------- |
+| -ms-          | IE or Edge                                              |
+| -moz-         | Firefox                                                 |
+| -o-           | Opera                                                   |
+| -webkit-      | Chrome, iOS Safari, Android Browser, Chrome for Android |
+
+#### 설치
+
+```bash
+$ npm i postcss postcss-loader autoprefixer -D
+```
+
+- postcss: 자바스크립트를 통해 css를 변환하기 위해 postcss의 설치가 필요
+- postcss-loader: CLI가 아니라 웹팩에서 postcss를 사용하기 위해 로더 설치
+- autoprefixer: 자동으로 벤더 프리픽스를 추가하기 위한 플러그인
+
+#### postcss 설정
+
+> 프로젝트 루트에 postcss.config.js 파일 생성 후 아래 코드 입력
+
+```javascript
+module.exports = {
+  plugins: [require("autoprefixer")],
+};
+```
+
+- postcss의 플러그인으로 autoprefixer 등록
+- 플러그인을 등록하는 모듈로 분리해서 관리
+
+#### scss 파일 수정
+
+>벤더 프리픽스가 필요하도록 index.module.scss 파일 수정
+
+```scss
+$font-color: green;
+$bg-color: #232c34;
+
+body {
+  background-color: $bg-color;
+  text-align: center;
+}
+
+.helloWebpack {
+  display: grid;
+  grid-template-columns: repeat(10, 100px);
+  color: $font-color;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 20px;
+  color: $font-color;
+}
+
+.svgImg {
+  grid-column-end: 9;
+  width: 100px;
+  height: 100px;
+  margin-top: -80px;
+  box-shadow: 1px 1px rgba(0, 0, 0, 0.3);
+}
+```
+
+- grid와 box-shadow는 벤더 프리픽스를 필요로 함
+
+#### 웹팩에 postcss 추가하기
+
+> 개발 모드와 프로덕션 모드에서 모두 사용하기 때문에 webpack.common.js 파일에 추가
+
+```javascript
+// ...
+const postcssLoader = {
+  loader: "postcss-loader",
+  options: {
+    config: {
+      path: "postcss.config.js",
+    },
+  },
+};
+
+module.exports = {
+  // ...
+  module: {
+    rules: [
+      {
+        test: /\.s?css$/i,
+        oneOf: [
+          {
+            test: /\.module\.s?css$/,
+            use: [
+              { loader: MiniCssExtractPlugin.loader },
+              {
+                loader: "css-loader",
+                options: {
+                  modules: true,
+                },
+              },
+              postcssLoader,
+              "sass-loader",
+            ],
+          },
+          {
+            use: [
+              MiniCssExtractPlugin.loader,
+              "css-loader",
+              postcssLoader,
+              "sass-loader",
+            ],
+          },
+        ],
+      },
+      // ...
+    ],
+  },
+  // ...
+};
+```
+
+- postcss 로더를 객체로 분리해서 설정을 한 뒤 각각의 로더 체이닝에 연결,
+  css 모듈과 전역 css에서 모두 사용하므로 반복을 줄이기 위해 변수로 관리
+- path: 설정 파일을 모듈로 분리해서 사용하는 경우 path 값을 통해 설정 모듈을 가져올 수 있음
+- 실행 후 network 탭에서 css 파일을 선택하고 preview를 클릭해서 보면 css 코드에 프리픽서가 추가되지 않은 것을 볼 수 있는데 이는 지원하려는 브라우저와 버전의 범위를 지정하지 않았기 때문에 발생하는 것
+
+### BrowsersList설정
+
+>auto prefixer 뿐만 아니라 다른 플러그인과 도구에도 영향을 주는 설정으로,
+>해당 애플리케이션에서 지원하고자 하는 브라우저와 버전을 관리
+
+#### 설정 방법
+
+##### ① package.json에 등록
+
+```json
+ "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not IE_Mob 11",
+    "maintained node versions"
+  ]
+```
+
+- browserslist 공식문서에서 권장하는 방식
 
 
 
+##### ② .browserslistrc 파일에 등록
 
+```javascript
+defaults
+not IE 11
+not IE_Mob 11
+maintained node versions
+```
+
+- browserslist 에 영향을 받는 도구나 플러그인이 실행될 때 해당 파일을 참조해서 동작
+
+#### Query Composition
+
+> 브라우저의 버전 범위를 지정하는 방식
+
+| Query combiner type | 집합   | 예                                                           |
+| ------------------- | ------ | ------------------------------------------------------------ |
+| or  또는 ,          | 합집합 | > .5% or last 2 versions<br />> .5%, last 2 versions         |
+| and                 | 교집합 | \> .5% and last 2 versions                                   |
+| not                 | 차집합 | > .5% and not last 2 versions<br />> .5% or not last 2 versions<br />> .5%, not last 2 versions |
+
+*※ 이 외에도 다양한 쿼리 방식이 있기 때문에* 
+
+[browserslist]: https://github.com/browserslist/browserslist
+*의 공식문서를 참조*
+
+#### package.json에 browserslist 등록하기
+
+```json
+{
+  // ...
+  "browserslist": [
+    "last 2 versions",
+    "IE 10",
+    "Firefox > 20"
+  ]
+}
+```
+
+- last 2 versions: 각 브라우저별 최신 버전과 그 이전 버전을 뜻함
+- IE 10: 인터넷 익스플로러 10버전을 지원하겠다는 것을 의미
+- Firefox > 20: 파이어폭스 20버전 이상부터 지원하겠다는 뜻
+
+#### 결과
+
+> 프로젝트 재시작 후 network 탭에서 css 파일을 선택하고 preview의 아래쪽을 확인해 보면
+> 다음과 같이 browserslist에 등록한 브라우저에 맞는 벤더 프리픽스가 추가된 것을 볼 수 있음
+
+```scss
+._22mle7nZXIxYtu7ofB6yc6 {
+  display: grid;
+  grid-template-columns: repeat(10, 100px);
+  color: green;
+  -webkit-box-pack: center;
+     -moz-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+     -moz-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  height: 100vh;
+  font-size: 20px;
+  color: green; }
+
+._3XWf2AZBOqetgC9Q8ufwLb {
+  grid-column-end: 9;
+  width: 100px;
+  height: 100px;
+  margin-top: -80px;
+  -webkit-box-shadow: 1px 1px rgba(0, 0, 0, 0.3);
+          box-shadow: 1px 1px rgba(0, 0, 0, 0.3); }
+```
+
+- 벤더 프리픽스를 일일이 등록하는 것은 힘들기도 하고 누락될 위험도 있기 때문에 browerslist를 설정한 뒤에
+  auto prefixer와 같은 도구(플러그인)를 이용하는 것이 용이함
+
+### StyleLint
+
+> css 코드 작성 규칙을 지정하고 그에 맞지 않는 문법을 사용하는 경우 에러를 유발해서 규칙을 지키도록 도와주는 도구
+
+#### 설치
+
+```bash
+$ npm i -D stylelint stylelint-scss stylelint-webpack-plugin stylelint-config-standard
+```
+
+- stylelint: 스타일린트를 사용하기 위한 핵심 모듈
+- stylelint-scss: scss 파일에 스일린트를 적용하기 위한 모듈
+- stylelint-webpack-plugin: 웹팩에 스타일린트를 적용하기 위해 필요한 모듈
+- stylelint-config-standard: 기본적인 규칙을 정해둔 모듈로 확장하거나 다른 규칙 모듈을 설치할 수도 있음
+
+*※ 설치 중 에러가 발생하는 경우 webpack-dev-server를 중지하고 설치하면 됨*
+
+#### 웹팩에 stylelint 등록하기
+
+> lint는 개발 환경에서만 사용되는 모듈이기 때문에 webpack.dev.js 파일에 lint를 등록
+
+```javascript
+// ...
+const StyleLintPlugin = require("stylelint-webpack-plugin");
+
+const config = {
+  // ...
+    plugins: [new StyleLintPlugin()],
+};
+// ...
+```
+
+- stylelint-webpack-plugin에서 플러그인 생성자 함수를 가져온 뒤 plugins 속성에 플러그인 등록
+
+#### stylelint-config-standard 적용하기
+
+> stylelint 플러그인에 스탠다드 설정을 적용하기 위해 .stylelintrc 파일을 생성한 뒤 아래 코드 작성
+
+```json
+{
+    "extends": "stylelint-config-standard"
+}
+```
+
+- index.module.scss 파일의 .helloWebpack 클래스에 color를 중복으로 작성하고 프로젝트를 실행하면
+  화면에 color가 중복 사용되었다는 에러가 출력되는 것을 볼 수 있음
+- rules 속성을 추가해서 규칙을 커스터마이징 할 수 있음
+
+*※ .~rc: 명령어(CLI)가 실행될 때 적용되는 설정이 담겨있는 파일들의 공통적인 확장자*
+
+## Babel
+
+> ES6 이상의 자바스크립트는 브라우저에서 동작하지 않기 때문에 ES6 코드를 브라우저에서 동작하는 자바스크립트(ES5)로 변환해주는 트랜스 컴파일러
+
+### 설치
+
+```bash
+$ npm i -D @babel/cli @babel/core @babel/preset-env babel-loader
+```
+
+- @babel/cli: 바벨이 실행될 때 필요한 컴파일러
+- @babel/core: 바벨 cli가 실행될 때 자바스크립트를 변환시키는 여러가지 기능을 포함하고 있는 모듈
+- @babel/preset-env: 브라우저에서 지원하지 않는 자바스크립트 스펙을 기존의 자바스크립트로 변화해주는 프리셋
+- @babel/preset-react: 리액트에서 사용하는 jsx 문법이 하위 브라우저에서도 지원될 수 있도록 해주는 프리셋
+- babel-loader: 웹팩에서 바벨을 사용할 수 있도록 하기 위해 필요한 로더
+- *@babel/cli와 @babel/core는 바벨의 동작을 위해 필수로 설치해야 하는 모듈이며 어떻게 트랜스 컴파일을 실행할 지에 대한 정의는 플러그인과 프리셋을 이용해서 정의해야 함*
+
+*※ preset: 여러 변환 기능을 제공하기 위해 묶여있는 패키지와 유사한 모듈*
+
+### 바벨 설정 파일 만들기
+
+> .babelrc 파일 또는 babel.config.js 파일로 설정 파일을 지정할 수 있는데 바벨에서는 후자를 권장하기 때문에 프로젝트 루트에 babel.config.js 파일을 생성하고 아래 코드 작성
+
+```javascript
+module.exports = {
+  presets: ["@babel/preset-env"],
+};
+```
+
+### 웹팩에 바벨 등록하기
+
+> 바벨을 cli로 실행하지 않고 웹팩 실행 시 동작하도록 하기 위해 웹팩에 등록, 개발 모드와 프로덕션 모드에서 모두 사용되기 때문에 webpack.common.js 파일을 다음과 같이 작성
+
+```javascript
+// ...
+module.exports = {
+  // ...
+  module: {
+    rules: [
+      // ...
+      {
+        test: /.js$/,
+        exclude: /node_modules/,
+        loader: "babel-loader",
+      },
+    ],
+  },
+  // ...
+};
+```
+
+- .js 파일을 모듈로 사용하기 위해 babel-loader를 등록
+- exclude: node_modules  폴더 내부의 js 파일들은 제외하기 위해 exclude 키를 이용, node_modules 내부의 파일들을 minification과 트랜스 파일링에 해당되는 파일들이기 때문에 바벨에서는 처리하지 않도록 설정
+- 프로젝트를 실행하고 network 탭에서 main.11241...js 파일을 선택하고 response 탭에서 imgElement 변수의 선언 부분을 찾아보면 const 키워드가 var 키워드로 변환되어 있는 것을 볼 수 있음
+
+### @babel/polyfill 사용하기
+
+> babel은 ES5를 기준으로 자바스크립트 코드를 트랜스 컴파일링하는데 ES5의 특정 기능을 지원하지 않는 브라우저에서도 해당 기능이 동작하도록 하기 위해 polyfill을 사용함
+
+#### polyfill이란?
+
+> 특정 환경에서 코드가 동작하지 않는 경우 해당 환경에서도 코드가 실행될 수 있도록 대체 코드를 추가해주는 기능
+
+#### 설치
+
+```bash
+$ npm i @babel/polyfill -D
+```
+
+#### 등록
+
+> 바벨 폴리필은 애플리케이션에서 최초 1회만 동작해야 한다는 조건이 있기 때문에 index.js 의 상단에 선언
+
+```javascript
+import "@babel/polyfill";
+// ...
+```
+
+- 프로젝트 실행 후 network 탭의 main.24124124...js 선택 후 response에서 polyfill을 검색해 보면 정상적으로 polyfill이 추가되어 있는 것을 볼 수 있음
