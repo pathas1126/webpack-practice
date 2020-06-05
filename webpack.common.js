@@ -4,6 +4,14 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpack = require("webpack");
 
+const postcssLoader = {
+  loader: "postcss-loader",
+  options: {
+    config: {
+      path: "postcss.config.js",
+    },
+  },
+};
 const isProduction = process.env.isProduction === "PRODUCTION";
 
 module.exports = {
@@ -15,20 +23,29 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.css$/i,
-        use: [
-          //   {
-          //     loader: "style-loader",
-          //     options: {
-          //       injectType: "singletonStyleTag",
-          //     },
-          //   },
-          { loader: MiniCssExtractPlugin.loader },
+        test: /\.s?css$/i,
+        oneOf: [
           {
-            loader: "css-loader",
-            options: {
-              modules: true,
-            },
+            test: /\.module\.s?css$/,
+            use: [
+              { loader: MiniCssExtractPlugin.loader },
+              {
+                loader: "css-loader",
+                options: {
+                  modules: true,
+                },
+              },
+              postcssLoader,
+              "sass-loader",
+            ],
+          },
+          {
+            use: [
+              MiniCssExtractPlugin.loader,
+              "css-loader",
+              postcssLoader,
+              "sass-loader",
+            ],
           },
         ],
       },
@@ -59,6 +76,11 @@ module.exports = {
             },
           },
         ],
+      },
+      {
+        test: /.js$/,
+        exclude: /node_modules/,
+        loader: "babel-loader",
       },
     ],
   },

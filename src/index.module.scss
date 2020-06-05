@@ -1,0 +1,25 @@
+$font-color: green;
+$bg-color: #232c34;
+
+body {
+  background-color: $bg-color;
+  text-align: center;
+}
+
+.helloWebpack {
+  display: grid;
+  grid-template-columns: repeat(10, 100px);
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 20px;
+  color: $font-color;
+}
+
+.svgImg {
+  grid-column-end: 9;
+  width: 100px;
+  height: 100px;
+  margin-top: -80px;
+  box-shadow: 1px 1px rgba(0, 0, 0, 0.3);
+}

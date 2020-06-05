@@ -1,5 +1,6 @@
+import "@babel/polyfill";
 import "normalize.css";
-import styles from "./index.css";
+import styles from "./index.module.scss";
 import $ from "jquery";
 import slackImg from "./images/slack.jpg";
 import svgImg from "./images/sample.svg";
@@ -10,8 +11,10 @@ const component = () => {
 
   const imgElement = document.createElement("img");
   imgElement.src = svgImg;
-  console.log(svgImg);
+  imgElement.classList = styles.svgImg;
 
+  console.log(svgImg);
+  console.log(styles);
   element.classList = styles.helloWebpack;
   element.appendChild(imgElement);
 
